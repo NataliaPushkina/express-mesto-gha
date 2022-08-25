@@ -2,8 +2,8 @@ const User = require('../models/user');
 
 const createUser = async (req, res) => {
   try {
-    const { name, about, avatar } = await new User(req.body).save();
-    return res.status(200).send({ name, about, avatar });
+    await new User(req.body).save();
+    return res.status(200).send('Пользователь добавлен');
   } catch (err) {
     if ((err.errors.avatar !== undefined && err.errors.avatar.name === 'ValidatorError')
     || (err.errors.about !== undefined && err.errors.about.name === 'ValidatorError')
@@ -27,12 +27,11 @@ const getUserById = async (req, res) => {
   const { userId } = req.params;
   try {
     const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).send({ message: 'Пользователь по указанному id не найден' });
-    }
     return res.status(200).send(user);
   } catch (err) {
+    if (err.kind === 'ObjectId') {
+      return res.status(404).send({ message: 'Пользователь по указанному id не найден' });
+    }
     return res.status(500).send({ message: 'Произошла ошибка на сервере', ...err });
   }
 };
@@ -46,11 +45,9 @@ const updateUser = async (req, res) => {
       { name, about },
       { new: true, runValidators: true },
     );
-    if (!user) {
-      return res.status(404).send({ message: 'Пользователь по указанному id не найден' });
-    }
     return res.status(200).send(user);
   } catch (err) {
+    console.log(err);
     if ((err.errors.name !== undefined && err.errors.name.name === 'ValidatorError')
     || (err.errors.about !== undefined && err.errors.about.name === 'ValidatorError')) {
       return res.status(400).send({ message: 'Переданы некорректные данные пользователя' });
