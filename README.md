@@ -3,8 +3,6 @@
 
 https://github.com/NataliaPushkina/express-mesto-gha
 
-## https://github.com/NataliaPushkina/express-mesto-gha
-
 ```
 [![Tests for sprint 13](https://github.com/NataliaPushkina/express-mesto-gha/actions/workflows/tests-13-sprint.yml/badge.svg)](https://github.com/NataliaPushkina/express-mesto-gha/actions/workflows/tests-13-sprint.yml) 
 
