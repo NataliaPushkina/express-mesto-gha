@@ -10,15 +10,15 @@ const {
   updateAvatar,
 } = require('../controllers/users');
 
-userRoutes.get('/users', getUsers);
+userRoutes.get('/users', express.json(), getUsers);
 
-userRoutes.get('/users/:userId', getUserById);
+userRoutes.get('/users/:userId', express.json(), getUserById);
 
 userRoutes.post('/users', express.json(), createUser);
 
-userRoutes.patch('/users/me', updateUser);
+userRoutes.patch('/users/me', express.json(), updateUser);
 
-userRoutes.patch('/users/me/avatar', updateAvatar);
+userRoutes.patch('/users/me/avatar', express.json(), updateAvatar);
 
 module.exports = {
   userRoutes,
