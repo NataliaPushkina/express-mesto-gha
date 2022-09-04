@@ -1,14 +1,16 @@
 const Card = require('../models/card');
 
-const OK = 200;
-const ERROR_BED_REQ = 400;
-const ERROR_NOT_FOUND = 404;
-const ERROR_SERVER = 500;
+const {
+  ERROR_BED_REQ,
+  ERROR_NOT_FOUND,
+  ERROR_SERVER,
+  ERROR_UNAUTHORIZED,
+} = require('../utils/constants');
 
 const getCards = async (req, res) => {
   try {
     const cards = await Card.find({});
-    res.status(OK).send(cards);
+    res.send(cards);
   } catch (err) {
     res.status(500).send({ message: 'Произошла ошибка на сервере', ...err });
   }
@@ -19,10 +21,9 @@ const createCard = async (req, res) => {
     const id = req.user._id;
     const { name, link } = req.body;
     const card = await new Card({ name, link, owner: id }).save();
-    return res.status(OK).send(card);
+    return res.send(card);
   } catch (err) {
-    if ((err.errors.name !== undefined && err.errors.name.name === 'ValidatorError')
-        || (err.errors.link !== undefined && err.errors.link.name === 'ValidatorError')) {
+    if (err.name === 'ValidationError') {
       return res.status(ERROR_BED_REQ).send({ message: 'Ошибка в запросе' });
     }
     return res.status(ERROR_SERVER).send({ message: 'Произошла ошибка на сервере', ...err });
@@ -33,10 +34,14 @@ const deleteCard = async (req, res) => {
   const { cardId } = req.params;
   try {
     const card = await Card.findByIdAndDelete(cardId);
+    const owner = card.owner.toString();
     if (!card) {
-      return res.status(ERROR_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки' });
+      res.status(ERROR_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки' });
+    } else
+    if (req.user._id !== owner) {
+      return res.status(ERROR_UNAUTHORIZED).send({ message: 'Можно удалять только свои карточки' });
     }
-    return res.status(OK).send({ message: 'Карточка удалена' });
+    return res.send({ message: 'Карточка удалена' });
   } catch (err) {
     if (err.kind === 'ObjectId') {
       return res.status(ERROR_BED_REQ).send({ message: 'Передан некорректный id карточки' });
@@ -56,7 +61,7 @@ const likeCard = async (req, res) => {
     if (!card) {
       return res.status(ERROR_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки' });
     }
-    return res.status(OK).send(card);
+    return res.send(card);
   } catch (err) {
     if (err.kind === 'ObjectId') {
       return res.status(ERROR_BED_REQ).send({ message: 'Переданы некорректные данные карточки' });
@@ -76,7 +81,7 @@ const dislikeCard = async (req, res) => {
     if (!card) {
       return res.status(ERROR_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки' });
     }
-    return res.status(OK).send(card);
+    return res.send(card);
   } catch (err) {
     if (err.kind === 'ObjectId') {
       return res.status(ERROR_BED_REQ).send({ message: 'Переданы некорректные данные карточки' });

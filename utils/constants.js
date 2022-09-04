@@ -1,0 +1,14 @@
+const ERROR_BED_REQ = 400;
+
+const ERROR_NOT_FOUND = 404;
+
+const ERROR_SERVER = 500;
+
+const ERROR_UNAUTHORIZED = 401;
+
+module.exports = {
+  ERROR_BED_REQ,
+  ERROR_NOT_FOUND,
+  ERROR_SERVER,
+  ERROR_UNAUTHORIZED,
+};

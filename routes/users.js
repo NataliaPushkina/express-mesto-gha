@@ -3,22 +3,22 @@ const express = require('express');
 const userRoutes = express.Router();
 
 const {
-  createUser,
   getUsers,
   getUserById,
   updateUser,
   updateAvatar,
+  getUserInfo,
 } = require('../controllers/users');
 
-userRoutes.get('/users', express.json(), getUsers);
+userRoutes.get('/users', getUsers);
 
-userRoutes.get('/users/:userId', express.json(), getUserById);
+userRoutes.get('/users/me', getUserInfo);
 
-userRoutes.post('/users', express.json(), createUser);
+userRoutes.get('/users/:userId', getUserById);
 
-userRoutes.patch('/users/me', express.json(), updateUser);
+userRoutes.patch('/users/me', updateUser);
 
-userRoutes.patch('/users/me/avatar', express.json(), updateAvatar);
+userRoutes.patch('/users/me/avatar', updateAvatar);
 
 module.exports = {
   userRoutes,
