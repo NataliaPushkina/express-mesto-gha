@@ -9,6 +9,7 @@ const { cardRoutes } = require('./routes/cards');
 const { createUser, login } = require('./controllers/users');
 
 const auth = require('./middlewares/auth');
+// const NotFoundError = require('./middlewares/errors/not-found-error');
 const { ERROR_NOT_FOUND } = require('./utils/constants');
 const handleError = require('./middlewares/errors/error');
 
@@ -24,7 +25,7 @@ app.post('/signup', celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string().uri(),
+    avatar: Joi.string().regex(/^(http|https):\/\/(W{3}\.)?[^]+#?$/),
     email: Joi.string().required().email(),
     password: Joi.string().required(),
   }),

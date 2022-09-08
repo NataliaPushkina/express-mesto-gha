@@ -1,5 +1,5 @@
 const handleError = (err, req, res, next) => {
-  res.send({ message: err.message });
+  res.status(err.statusCode).send({ message: err.message });
   next();
 };
 

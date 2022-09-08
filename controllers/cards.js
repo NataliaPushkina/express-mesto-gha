@@ -77,7 +77,7 @@ const dislikeCard = async (req, res, next) => {
       { new: true },
     );
     if (!card) {
-      next(new NotFoundError('Передан несуществующий _id карточки'));
+      return next(new NotFoundError('Передан несуществующий _id карточки'));
     }
     return res.send(card);
   } catch (err) {

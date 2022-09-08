@@ -30,7 +30,7 @@ const createUser = async (req, res, next) => {
       next(new BedReqError({ message: 'Переданы некорректные данные пользователя' }));
     }
     if (err.code === 11000) {
-      next(new ConflictError('Пользователь с указанным email уже существует'));
+      return next(new ConflictError('Пользователь с указанным email уже существует'));
     }
     return next(new ServerError('Произошла ошибка на сервере'));
   }
@@ -105,7 +105,7 @@ const login = async (req, res, next) => {
     }
     const matchedPas = await bcrypt.compare(password, user.password);
     if (!matchedPas) {
-      next(new AuthError('Неправильные почта или пароль'));
+      return next(new AuthError('Неправильные почта или пароль'));
     }
     const token = jwt.sign(
       { _id: user._id },
@@ -125,8 +125,14 @@ const getUserInfo = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const user = await User.findById(userId);
+    if (!user) {
+      next(new NotFoundError('Передан несуществующий _id пользователя'));
+    }
     return res.send(user);
   } catch (err) {
+    if (err.kind === 'ObjectId') {
+      next(new BedReqError('Передан некорректный _id пользователя'));
+    }
     return next(new ServerError('Произошла ошибка на сервере'));
   }
 };
