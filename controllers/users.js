@@ -1,15 +1,13 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const NotFoundError = require('../middlewares/errors/not-found-error');
+const BedReqError = require('../middlewares/errors/bed-req-error');
+const ConflictError = require('../middlewares/errors/conflict-error');
+const ServerError = require('../middlewares/errors/server-error');
+const AuthError = require('../middlewares/errors/auth-error');
 
-const {
-  ERROR_BED_REQ,
-  ERROR_NOT_FOUND,
-  ERROR_SERVER,
-  ERROR_UNAUTHORIZED,
-} = require('../utils/constants');
-
-const createUser = async (req, res) => {
+const createUser = async (req, res, next) => {
   try {
     const {
       name,
@@ -19,48 +17,51 @@ const createUser = async (req, res) => {
       password,
     } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await new User({
+    const user = await User.create({
       name,
       about,
       avatar,
       email,
       password: hashedPassword,
-    }).save();
+    });
     return res.send(user.hidePassword());
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(ERROR_BED_REQ).send({ message: 'Переданы некорректные данные пользователя' });
+      next(new BedReqError({ message: 'Переданы некорректные данные пользователя' }));
     }
-    return res.status(ERROR_SERVER).send({ message: 'Произошла ошибка на сервере', ...err });
+    if (err.code === 11000) {
+      next(new ConflictError('Пользователь с указанным email уже существует'));
+    }
+    return next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 
-const getUsers = async (req, res) => {
+const getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
-    res.send(users);
+    return res.send(users);
   } catch (err) {
-    res.status(ERROR_SERVER).send({ message: 'Произошла ошибка на сервере', ...err });
+    return next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 
-const getUserById = async (req, res) => {
+const getUserById = async (req, res, next) => {
   const { userId } = req.params;
   try {
     const user = await User.findById(userId);
-    if (!user) {
-      return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователя с указанным id не существует' });
+    if (user) {
+      return res.send(user);
     }
-    return res.send(user);
+    return next(new NotFoundError('Пользователя с указанным id не существует'));
   } catch (err) {
     if (err.kind === 'ObjectId') {
-      return res.status(ERROR_BED_REQ).send({ message: 'Передан некорректный id пользователя' });
+      next(new BedReqError('Передан некорректный id пользователя'));
     }
-    return res.status(ERROR_SERVER).send({ message: 'Произошла ошибка на сервере', ...err });
+    return next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
   try {
     const id = req.user._id;
     const { name, about } = req.body;
@@ -71,59 +72,62 @@ const updateUser = async (req, res) => {
     );
     return res.send(user);
   } catch (err) {
-    console.log(err);
     if (err.name === 'ValidationError') {
-      return res.status(ERROR_BED_REQ).send({ message: 'Переданы некорректные данные пользователя' });
+      next(new BedReqError('Переданы некорректные данные пользователя'));
     }
-    return res.status(ERROR_SERVER).send({ message: 'Произошла ошибка на сервере', ...err });
+    return next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 
-const updateAvatar = async (req, res) => {
+const updateAvatar = async (req, res, next) => {
   try {
     const id = req.user._id;
     const { avatar } = req.body;
     const user = await User.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true });
     if (!user) {
-      return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
+      next(new NotFoundError('Пользователь по указанному id не найден'));
     }
     return res.send(user);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return res.status(ERROR_BED_REQ).send({ message: 'Передана некорректная ссылка на аватар пользователя' });
+      next(new BedReqError('Передана некорректная ссылка на аватар пользователя'));
     }
-    return res.status(ERROR_SERVER).send({ message: 'Произошла ошибка на сервере', ...err });
+    return next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 
-const login = async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email }).select('+password');
-  if (!user) {
-    return res.status(ERROR_NOT_FOUND).send({ message: 'Пользователь c указанным email не найден' });
+const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      next(new NotFoundError('Пользователь c указанным email не найден'));
+    }
+    const matchedPas = await bcrypt.compare(password, user.password);
+    if (!matchedPas) {
+      next(new AuthError('Неправильные почта или пароль'));
+    }
+    const token = jwt.sign(
+      { _id: user._id },
+      'some-secret-key',
+    );
+    res.cookie('jwt', token, {
+      maxAge: 3600000,
+      httpOnly: true,
+    });
+    return res.send(user);
+  } catch (err) {
+    return next(new ServerError('Произошла ошибка на сервере'));
   }
-  const matchedPas = await bcrypt.compare(password, user.password);
-  if (!matchedPas) {
-    return res.status(ERROR_UNAUTHORIZED).send({ message: 'Неправильные почта или пароль' });
-  }
-  const token = jwt.sign(
-    { _id: user._id },
-    'some-secret-key',
-  );
-  res.cookie('jwt', token, {
-    maxAge: 3600000,
-    httpOnly: true,
-  });
-  return res.send(user);
 };
 
-const getUserInfo = async (req, res) => {
+const getUserInfo = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const user = await User.findById(userId);
-    res.send(user);
+    return res.send(user);
   } catch (err) {
-    res.status(ERROR_SERVER).send({ message: 'Произошла ошибка на сервере', ...err });
+    return next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 

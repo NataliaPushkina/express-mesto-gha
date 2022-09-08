@@ -3,13 +3,6 @@ const isEmail = require('validator/lib/isEmail');
 
 const userSchema = new mongoose.Schema({
 
-  // validate: {
-  //   validator: function(v) {
-  //     return /\d{3}-\d{3}-\d{4}/.test(v);
-  //   },
-  //   message: props => `${props.value} is not a valid phone number!`
-  // },
-
   email: {
     type: String,
     unique: true,
@@ -43,6 +36,13 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate: {
+      validator: (v) => {
+        const valid = /^(http|https):\/\/(W{3}\.)?[^]+#?$/.test(v);
+        return valid;
+      },
+      message: 'Неправильный формат поля avatar',
+    },
   },
 }, { versionKey: false });
 
