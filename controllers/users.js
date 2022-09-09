@@ -101,7 +101,7 @@ const login = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      next(new NotFoundError('Пользователь c указанным email не найден'));
+      next(new AuthError('Пользователь c указанным email не найден'));
     }
     const matchedPas = await bcrypt.compare(password, user.password);
     if (!matchedPas) {

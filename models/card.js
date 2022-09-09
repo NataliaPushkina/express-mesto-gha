@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { isURL } = require('validator/lib/isURL');
 
 const cardSchema = new mongoose.Schema({
 
@@ -14,7 +13,10 @@ const cardSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      validator: (v) => isURL(v),
+      validator: (v) => {
+        const valid = /^(http|https):\/\/(W{3}\.)?[^]+#?$/.test(v);
+        return valid;
+      },
       message: 'Неправильный формат ссылки',
     },
   },

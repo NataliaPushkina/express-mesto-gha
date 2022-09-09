@@ -3,11 +3,14 @@ const Card = require('../models/card');
 const NotFoundError = require('../middlewares/errors/not-found-error');
 const BedReqError = require('../middlewares/errors/bed-req-error');
 const ServerError = require('../middlewares/errors/server-error');
-const AuthError = require('../middlewares/errors/auth-error');
+const ForbiddenError = require('../middlewares/errors/forbidden-error');
 
 const getCards = async (req, res, next) => {
   try {
     const cards = await Card.find({});
+    if (!cards) {
+      next(new NotFoundError('Не удалось найти карточки'));
+    }
     res.send(cards);
   } catch (err) {
     next(new ServerError('Произошла ошибка на сервере'));
@@ -18,11 +21,11 @@ const createCard = async (req, res, next) => {
   try {
     const id = req.user._id;
     const { name, link } = req.body;
-    const card = await new Card({ name, link, owner: id }).save();
+    const card = await Card.create({ name, link, owner: id });
     return res.send(card);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      next(new BedReqError('ПОшибка в запросе'));
+      next(new BedReqError('Ошибка в запросе'));
     }
     return next(new ServerError('Произошла ошибка на сервере'));
   }
@@ -36,7 +39,7 @@ const deleteCard = async (req, res, next) => {
       next(new NotFoundError('Передан несуществующий _id карточки'));
     } else
     if (req.user._id !== card.owner.toString()) {
-      return next(new AuthError('Можно удалять только свои карточки'));
+      return next(new ForbiddenError('Можно удалять только свои карточки'));
     }
     card.delete();
     return res.send({ message: 'Карточка удалена' });
