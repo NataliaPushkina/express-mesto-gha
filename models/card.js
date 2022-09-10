@@ -25,6 +25,10 @@ const cardSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user',
     required: true,
+    validate: {
+      validator: (v) => /^[a-fA-F0-9]{24}$/.test(v),
+      message: 'Неправильный id пользователя!',
+    },
   },
 
   likes: {

@@ -27,7 +27,7 @@ const createUser = async (req, res, next) => {
     return res.send(user.hidePassword());
   } catch (err) {
     if (err.name === 'ValidationError') {
-      next(new BedReqError({ message: 'Переданы некорректные данные пользователя' }));
+      return next(new BedReqError({ message: 'Переданы некорректные данные пользователя' }));
     }
     if (err.code === 11000) {
       return next(new ConflictError('Пользователь с указанным email уже существует'));
@@ -55,7 +55,7 @@ const getUserById = async (req, res, next) => {
     return next(new NotFoundError('Пользователя с указанным id не существует'));
   } catch (err) {
     if (err.kind === 'ObjectId') {
-      next(new BedReqError('Передан некорректный id пользователя'));
+      return next(new BedReqError('Передан некорректный id пользователя'));
     }
     return next(new ServerError('Произошла ошибка на сервере'));
   }
@@ -73,7 +73,7 @@ const updateUser = async (req, res, next) => {
     return res.send(user);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      next(new BedReqError('Переданы некорректные данные пользователя'));
+      return next(new BedReqError('Переданы некорректные данные пользователя'));
     }
     return next(new ServerError('Произошла ошибка на сервере'));
   }
@@ -85,12 +85,12 @@ const updateAvatar = async (req, res, next) => {
     const { avatar } = req.body;
     const user = await User.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true });
     if (!user) {
-      next(new NotFoundError('Пользователь по указанному id не найден'));
+      return next(new NotFoundError('Пользователь по указанному id не найден'));
     }
     return res.send(user);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      next(new BedReqError('Передана некорректная ссылка на аватар пользователя'));
+      return next(new BedReqError('Передана некорректная ссылка на аватар пользователя'));
     }
     return next(new ServerError('Произошла ошибка на сервере'));
   }
@@ -101,7 +101,7 @@ const login = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      next(new AuthError('Пользователь c указанным email не найден'));
+      return next(new AuthError('Пользователь c указанным email не найден'));
     }
     const matchedPas = await bcrypt.compare(password, user.password);
     if (!matchedPas) {
@@ -117,7 +117,7 @@ const login = async (req, res, next) => {
     });
     return res.send(user);
   } catch (err) {
-    return next(new ServerError('Произошла ошибка на сервере'));
+    return next(err);
   }
 };
 
@@ -126,12 +126,12 @@ const getUserInfo = async (req, res, next) => {
     const userId = req.user._id;
     const user = await User.findById(userId);
     if (!user) {
-      next(new NotFoundError('Передан несуществующий _id пользователя'));
+      return next(new NotFoundError('Передан несуществующий _id пользователя'));
     }
     return res.send(user);
   } catch (err) {
     if (err.kind === 'ObjectId') {
-      next(new BedReqError('Передан некорректный _id пользователя'));
+      return next(new BedReqError('Передан некорректный _id пользователя'));
     }
     return next(new ServerError('Произошла ошибка на сервере'));
   }
