@@ -9,11 +9,11 @@ const getCards = async (req, res, next) => {
   try {
     const cards = await Card.find({});
     if (!cards) {
-      next(new NotFoundError('Не удалось найти карточки'));
+      return next(new NotFoundError('Не удалось найти карточки'));
     }
-    res.send(cards);
+    return res.send(cards);
   } catch (err) {
-    next(new ServerError('Произошла ошибка на сервере'));
+    return next(new ServerError('Произошла ошибка на сервере'));
   }
 };
 
@@ -25,7 +25,7 @@ const createCard = async (req, res, next) => {
     return res.send(card);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      next(new BedReqError('Ошибка в запросе'));
+      return next(new BedReqError('Ошибка в запросе'));
     }
     return next(new ServerError('Произошла ошибка на сервере'));
   }
@@ -36,8 +36,8 @@ const deleteCard = async (req, res, next) => {
   try {
     const card = await Card.findById(cardId);
     if (!card) {
-      next(new NotFoundError('Передан несуществующий _id карточки'));
-    } else
+      return next(new NotFoundError('Передан несуществующий _id карточки'));
+    }
     if (req.user._id !== card.owner.toString()) {
       return next(new ForbiddenError('Можно удалять только свои карточки'));
     }
@@ -45,7 +45,7 @@ const deleteCard = async (req, res, next) => {
     return res.send({ message: 'Карточка удалена' });
   } catch (err) {
     if (err.kind === 'ObjectId') {
-      next(new BedReqError('Передан некорректный id карточки'));
+      return next(new BedReqError('Передан некорректный id карточки'));
     }
     return next(new ServerError('Произошла ошибка на сервере'));
   }
@@ -60,12 +60,12 @@ const likeCard = async (req, res, next) => {
       { new: true },
     );
     if (!card) {
-      next(new NotFoundError('Передан несуществующий _id карточки'));
+      return next(new NotFoundError('Передан несуществующий _id карточки'));
     }
     return res.send(card);
   } catch (err) {
     if (err.kind === 'ObjectId') {
-      next(new BedReqError('Переданы некорректные данные карточки'));
+      return next(new BedReqError('Переданы некорректные данные карточки'));
     }
     return next(new ServerError('Произошла ошибка на сервере'));
   }
@@ -85,7 +85,7 @@ const dislikeCard = async (req, res, next) => {
     return res.send(card);
   } catch (err) {
     if (err.kind === 'ObjectId') {
-      next(new BedReqError('Переданы некорректные данные карточки'));
+      return next(new BedReqError('Переданы некорректные данные карточки'));
     }
     return next(new ServerError('Произошла ошибка на сервере'));
   }
