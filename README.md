@@ -1,6 +1,6 @@
-#Учебный проект "Mesto" backend
+# Учебный проект "Mesto" backend
 
-##Технологии: Express.js, MongoDB 
+## Технологии: Express.js, MongoDB 
 
 ## Директории
 
