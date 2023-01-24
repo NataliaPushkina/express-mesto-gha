@@ -1,22 +1,12 @@
-[![Tests](https://github.com/yandex-praktikum/express-mesto-gha/actions/workflows/tests-13-sprint.yml/badge.svg)](https://github.com/yandex-praktikum/express-mesto-gha/actions/workflows/tests-13-sprint.yml) [![Tests](https://github.com/yandex-praktikum/express-mesto-gha/actions/workflows/tests-14-sprint.yml/badge.svg)](https://github.com/yandex-praktikum/express-mesto-gha/actions/workflows/tests-14-sprint.yml)
-# Проект Mesto фронтенд + бэкенд
+#Учебный проект "Mesto" backend
 
-https://github.com/NataliaPushkina/express-mesto-gha
-
-```
-[![Tests for sprint 13](https://github.com/NataliaPushkina/express-mesto-gha/actions/workflows/tests-13-sprint.yml/badge.svg)](https://github.com/NataliaPushkina/express-mesto-gha/actions/workflows/tests-13-sprint.yml) 
-
-[![Tests for sprint 14](https://github.com/NataliaPushkina/express-mesto-gha/actions/workflows/tests-14-sprint.yml/badge.svg)](https://github.com/NataliaPushkina/express-mesto-gha/actions/workflows/tests-14-sprint.yml)
-```
-
+##Технологии: Express.js, MongoDB 
 
 ## Директории
 
 `/routes` — папка с файлами роутера  
 `/controllers` — папка с файлами контроллеров пользователя и карточки   
 `/models` — папка с файлами описания схем пользователя и карточки  
-  
-Остальные директории вспомогательные, создаются при необходимости разработчиком
 
 ## Запуск проекта
 
